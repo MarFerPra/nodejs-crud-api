@@ -2,17 +2,14 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 
 var port = 8080;
 
-var router = express.Router();
-
 
 /* Cargando modelo de usuario */
-var User = require('./models/user');
-
 if(User){
   console.log("Modelo de usuario cargado correctamente.");
 }
@@ -28,12 +25,51 @@ mongoose.connect('mongodb://localhost/test', function(err){
   }
 });
 
-// Test route on /
+var User = require('./models/user');
+
+var router = express.Router();
+
+router.use(function(req, res, next){
+  console.log('Middleware: Petición realizada. (Algo ha pasado)');
+  next();
+});
+
+// Test route on '/'
 
 router.get('/', function(req, res){
   res.json({message: 'It\'s working. Now keep coding!'});
 });
 
+
+// Rutas de la API:
+
+router.route('/users')
+  .post(function(req,res){
+    var user = new User();
+    user.name = req.body.name;
+
+    console.log("Nombre del usuario nuevo: "+user.name);
+
+    user.save(function(err){
+      if(err)
+        res.send(err);
+
+      res.json({ message: 'Usuario creado!'});
+    });
+  })
+
+  .get(function(req,res){
+    User.find(function(err, users){
+      if(err)
+        res.send(err);
+
+      res.json(users);
+    });
+  });
+
+
+
+/* Todas las rutas van a tener el prefijo /api */
 app.use('/api', router);
 
 app.listen(port);
