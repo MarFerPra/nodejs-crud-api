@@ -43,7 +43,11 @@ router.get('/', function(req, res){
 
 // Rutas de la API:
 
+
+
+
 router.route('/users')
+// Post para añadir nuevos usuarios
   .post(function(req,res){
     var user = new User();
     user.name = req.body.name;
@@ -58,12 +62,51 @@ router.route('/users')
     });
   })
 
+// Get de todos los usuarios
   .get(function(req,res){
     User.find(function(err, users){
       if(err)
         res.send(err);
 
       res.json(users);
+    });
+  });
+
+router.route('/users/:user_id')
+// get de usuario particular por su id
+  .get(function(req,res){
+    User.findById(req.params.user_id,function(err, user){
+      if(err)
+        res.send(err);
+      res.json(user);
+    });
+  })
+
+  // update user with id provided in request
+  .put(function(req,res){
+    User.findById(req.params.user_id, function(err,user){
+      if(err)
+        res.send(err);
+
+      user.name = req.body.name;
+      user.save(function(err){
+        if(err)
+          res.send(err);
+
+        res.json({ message: 'User with id: '+req.params.user_id+' updated!'});
+      });
+    });
+  })
+
+  // delete user passing user_id
+  .delete(function(req,res){
+    User.remove({
+      _id: req.params.user_id
+    }, function(err, user){
+      if(err)
+        res.send(err);
+
+      res.json({ message: 'Usuario con id: '+req.params.user_id+' eliminado.'});
     });
   });
 
